@@ -1,0 +1,532 @@
+
+
+
+
+
+
+
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <meta name="author" content="zengkai">
+  
+  
+  
+  
+    <meta name="description" content="缓存数据每个微信小程序都可以有自己的本地缓存，可以通过 wx.setStorage（wx.setStorageSync）、wx.getStorage（wx.getStorageSync）、wx.clearStorage（wx.clearStorageSync）可以对本地缓存进行设置、获取和清理。同一个微信用户，同一个小程序 storage 上限为 10MB。localStorage 以用户维...">
+  
+  <title>小程序中的storage [ Zengkai's Blog ]</title>
+  
+  
+    <link rel="shortcut icon" href="/zengkaii.github.io/favicon.ico">
+  
+  
+  <link rel="stylesheet" href="/zengkaii.github.io/css/random.css">
+<link rel="stylesheet" href="/zengkaii.github.io/css/vegas.min.css">
+<link rel="stylesheet" href="/zengkaii.github.io/css/highlight-railscasts.css">
+<link rel="stylesheet" href="/zengkaii.github.io/css/jquery.fancybox.css">
+<link rel="stylesheet" href="/zengkaii.github.io/css/iconfont/iconfont.css">
+<link rel="stylesheet" href="/zengkaii.github.io/css/jquery.fancybox-thumbs.css">
+<link rel="stylesheet" href="/zengkaii.github.io/css/plyr.css">
+  
+</head>
+
+<body>
+<div class="side-navigate hide-area">
+  
+    <div class="item prev">
+      <a href="/zengkaii.github.io/2018/06/20/function/">
+        <div class="item-icon"></div>
+      </a>
+      <div class="item-title">
+        javascript函数
+      </div>
+    </div>
+  
+  
+    <div class="item next">
+      <a href="/zengkaii.github.io/2018/05/31/lagou/">
+        <div class="item-icon"></div>
+      </a>
+      <div class="item-title">
+        拉勾微信小程序
+      </div>
+    </div>
+  
+</div>
+<div id="outer-container" class="hide-area">
+<div id="container">
+  <div id="menu-outer" class="slide-down">
+    <div id="menu-inner">
+      <div id="brand">
+        
+        <a onClick="openUserCard()">
+          <img id="avatar" src="https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=3469716026,2816395410&fm=27&gp=0.jpg"/>
+          <div id="homelink">Zengkai's Blog</div>
+        </a>
+      </div>
+      <div id="menu-list">
+        <ul>
+        
+        
+          
+            <li>
+          
+            <a href="/zengkaii.github.io/index.html">Home</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/zengkaii.github.io/archives">Archives</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/zengkaii.github.io/tags">Tags</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="https://github.com/zengkaii">Github</a>
+            
+          </li>
+        
+        </ul>
+      </div>
+      <div id="show-menu">
+        <button>Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="content-outer">
+    <div id="content-inner">
+      
+      
+  <article id="post">
+    <h1>小程序中的storage</h1>
+    <p class="page-title-sub">
+      <span id = "post-title-date">Created at 2018-06-05</span>
+      
+        <span id = "post-title-updated">Updated at 2018-07-18</span>
+      
+      
+      
+      <span id = "post-title-tags">
+      Tag
+      
+      
+        
+        
+        <a href="/zengkaii.github.io/tags/微信小程序storage/">微信小程序storage</a>
+      
+      </span>
+      
+    </p>
+    
+    <h2 id="缓存数据"><a href="#缓存数据" class="headerlink" title="缓存数据"></a>缓存数据</h2><p>每个微信小程序都可以有自己的本地缓存，可以通过 wx.setStorage（wx.setStorageSync）、wx.getStorage（wx.getStorageSync）、wx.clearStorage（wx.clearStorageSync）可以对本地缓存进行设置、获取和清理。同一个微信用户，同一个小程序 storage 上限为 <code>10MB</code>。localStorage 以用户维度隔离，同一台设备上，A 用户无法读取到 B 用户的数据。</p>
+<h3 id="数据常用于哪里？"><a href="#数据常用于哪里？" class="headerlink" title="数据常用于哪里？"></a>数据常用于哪里？</h3><p>对于数据需求较小的历史记录、购物车事件等都可以使用<code>storage</code>进行缓存，<code>Storage</code>将数据存储在本地缓存中指定的 <code>key</code> 中，如果重复会覆盖掉原来该 <code>key</code> 对应的内容<br>可以参照微信小程序开发手册中的<a href="https://developers.weixin.qq.com/miniprogram/dev/api/data.html#wxsetstorageobject" target="_blank" rel="noopener">Storage</a></p>
+<h3 id="如何使用异步接口进行数据缓存？"><a href="#如何使用异步接口进行数据缓存？" class="headerlink" title="如何使用异步接口进行数据缓存？"></a>如何使用异步接口进行数据缓存？</h3><pre><code>将数据存储在本地缓存中指定的 key 中，会覆盖掉原来该 key 对应的内容，这是一个异步接口。
+</code></pre><p>OBJECT参数说明：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th style="text-align:left">类型</th>
+<th style="text-align:left">必填</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>key</td>
+<td style="text-align:left">String</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">本地缓存中的指定的</td>
+<td>key</td>
+</tr>
+<tr>
+<td>data</td>
+<td style="text-align:left">Object/String</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">需要存储的内容</td>
+</tr>
+<tr>
+<td>success</td>
+<td style="text-align:left">Function</td>
+<td style="text-align:left">否</td>
+<td style="text-align:left">接口调用成功的回调函数</td>
+</tr>
+<tr>
+<td>fail</td>
+<td style="text-align:left">Function</td>
+<td style="text-align:left">否</td>
+<td style="text-align:left">接口调用失败的回调函数</td>
+</tr>
+<tr>
+<td>complete</td>
+<td style="text-align:left">Function</td>
+<td style="text-align:left">否</td>
+<td style="text-align:left">接口调用结束的回调函数（调用成功、失败都会执行）</td>
+</tr>
+</tbody>
+</table>
+<p>示例代码</p>
+<pre><code>wx.setStorage({
+    key:&quot;key&quot;,
+    data:&quot;value&quot;
+})
+</code></pre><p>当<code>setStorage</code>之后可以去到开发者工具里面查看<br>这是没有保存值的情况</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/6/11/163edbfdbb7a7f04?w=1306&amp;h=187&amp;f=png&amp;s=19032" alt=""><br>可以看到是没有<code>key</code>值的<br>那么当我们去进行输入搜索</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/6/11/163edc5a07009655?w=391&amp;h=704&amp;f=gif&amp;s=169358" alt=""><br>最后再去<code>storage</code>中查看</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/6/11/163edc605fd3dbcb?w=1306&amp;h=266&amp;f=png&amp;s=24854" alt=""><br>获取到了一个<code>key</code>为<code>history</code>的<code>Array</code>数组<br>那么再去进行搜索</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/6/11/163edc90d2b18736?w=391&amp;h=704&amp;f=gif&amp;s=332964" alt=""><br>再看看<code>storage</code></p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/6/11/163edc96a48aba33?w=1298&amp;h=278&amp;f=png&amp;s=24394" alt=""><br>得到了一个数组而且没有被覆盖，那么怎么实现的呢？<br>先来看看代码 </p>
+<pre><code>search.wxml
+
+ &lt;view class=&quot;search-top-input&quot;&gt;
+      &lt;input type=&quot;text&quot; placeholder=&quot;搜索公司/职位&quot; auto-focus=&quot;true&quot; value=&quot;{{inputsearch}}&quot; 
+      bindconfirm=&quot;search&quot;
+      bindinput=&quot;inputSearchTap&quot;
+      data-index=&quot;{{index}}&quot;/&gt;
+ &lt;/view&gt;
+
+ &lt;view class=&quot;search-history&quot; wx:if=&quot;{{status}}&quot;&gt;
+        &lt;view class=&quot;search-history-title&quot;&gt;
+              &lt;text&gt;历史搜索&lt;/text&gt;
+              &lt;image src=&quot;../../images/delete.png&quot; bindtap=&quot;deleteHistory&quot;&gt;&lt;/image&gt;
+        &lt;/view&gt;
+        &lt;view class=&quot;search-history-detail&quot; &gt;
+              &lt;view class=&quot;history-detail&quot; wx:for=&quot;{{history}}&quot; wx:key=&quot;{{item}}&quot; bindtap=&quot;historySearch&quot; data-index=&quot;{{index}}&quot;&gt;
+                    &lt;text class=&quot;detail&quot; &gt;{{item}}&lt;/text&gt;
+              &lt;/view&gt;
+        &lt;/view&gt;
+ &lt;/view&gt;
+
+ search.js
+
+ 设置data
+
+data: {
+    status:false,
+    inputsearch:&apos;&apos;,
+    job:[],
+    history:[],
+},
+
+ 首先去获取storage中的值
+
+  onLoad: function (options) {
+    var that =this;
+    wx.getStorage({
+    key: &apos;history&apos;,
+    success: function(res){
+        that.setData({
+          history:res.data,
+        })
+        if(that.data.history.length==0){
+          that.setData({
+            status:false
+          });
+        }else{
+          that.setData({
+            status:true
+          })
+         }
+      },
+      fail: function(res) {
+        console.log(res+&apos;aaaaa&apos;)
+      }
+    });
+},
+
+进行搜索和缓存数据到storage中
+
+search:function(e){
+var that =this;
+var sear =this.data.inputsearch;
+var jobs=this.data.job;
+var input = new RegExp(sear);
+var temp = [];
+if(sear == &apos;&apos;){
+  wx.showToast({
+    title: &apos;请输入要搜索信息&apos;,
+    icon:&quot;none&quot;,
+    duration: 1000
+  });
+ return false;
+}else{
+   this.data.history.unshift(sear);
+wx.setStorage({
+  key: &apos;history&apos;,
+  data: that.data.history,
+  success: function(res){
+    that.setData({
+      history:that.data.history,
+      status:true
+    })
+    console.log(res.data);
+  },
+})
+  for(let i =0;i&lt;jobs.length;i++){
+    if(input.test(jobs[i].job) || input.test(jobs[i].company) || input.test(jobs[i].address)){
+
+      temp.push(jobs[i]);
+    var detail=temp;
+    app.globalData.details=detail;
+    }
+  } 
+  if(temp ==&apos;&apos;){
+     wx.showToast({
+    title: &apos;暂无此信息&apos;,
+    icon:&quot;none&quot;,
+    duration: 1000
+
+  });
+  this.setData({
+    inputsearch:&apos;&apos;
+  })
+  }else if(temp){
+    wx.navigateTo({
+      url:&apos;../about/about&apos;
+    })
+    this.setData({
+      inputsearch:&apos;&apos;
+    })
+  }
+ }
+},
+</code></pre><p>将<code>storage</code>中的<code>key</code>值设为<code>hisotry</code></p>
+<pre><code>wx.setStorage({
+  key: &apos;history&apos;,
+  data: that.data.history,
+)}
+</code></pre><p>定义一个数组<code>history</code>空数组去获取<code>storage</code>中的值,首先是去查询有没有该<code>key</code>值，如果没有则<code>fail</code>，那么<code>history</code>依然为空数组</p>
+<pre><code>wx.setStorage({
+  key: &apos;history&apos;,
+  data: that.data.history,
+  success: function(res){
+    that.setData({
+      history:that.data.history,
+      status:true
+    })
+  },
+})
+</code></pre><p>返回得到<code>history</code>之后再去将<code>inputsearch</code>的值添加到<code>history</code>中,</p>
+<pre><code>这里有个误区
+可能你会将输入的值inputsearch  push到一个新的空数组，然后再将这个新数组push到history数组中，但这个方法
+显然不可行，你添加之后新数组将会存放在history数组的第一个下标的数组下，
+对于history数组也就只有两个值
+</code></pre><p>好了，回到我要说的，那么如何将<code>inputsearch</code>添加到<code>history</code>中呢,可以使用<code>unshift</code>方法或者<code>push</code>方法，这里应该使用<code>unshift</code>应该将每个新增值存放在<code>history</code>的第一个位置，这是其实就是一个用户体验问题了</p>
+<pre><code>var that =this;
+var sear =this.data.inputsearch;
+this.data.history.unshift(sear);
+wx.setStorage({
+    key: &apos;history&apos;,
+    data: that.data.history,
+      success: function(res){
+        that.setData({
+          history:that.data.history,
+          status:true
+        })
+        console.log(res.data);
+      },
+})
+</code></pre><p>好了，这样就不会出现“覆盖掉”原来的<code>key</code>值的问题了,是不是美滋滋</p>
+<h2 id="当然还有setStorageSync同步接口的问题"><a href="#当然还有setStorageSync同步接口的问题" class="headerlink" title="当然还有setStorageSync同步接口的问题"></a>当然还有<code>setStorageSync</code>同步接口的问题</h2><p>详情点击<a href="https://segmentfault.com/a/1190000015244673" target="_blank" rel="noopener">这里</a></p>
+<h3 id="这里是项目地址"><a href="#这里是项目地址" class="headerlink" title="这里是项目地址"></a>这里是项目地址</h3><p>查看点击<a href="https://segmentfault.com/a/1190000015243935" target="_blank" rel="noopener">这里</a></p>
+<h3 id="如果你觉得对你有所帮助"><a href="#如果你觉得对你有所帮助" class="headerlink" title="如果你觉得对你有所帮助"></a>如果你觉得对你有所帮助</h3><p>那么给我的<code>github</code>项目一个<strong>Star</strong>吧</p>
+<p>访问点击<a href="https://github.com/zengkaii/wxapp" target="_blank" rel="noopener">这里</a></p>
+<h1 id="谢谢"><a href="#谢谢" class="headerlink" title="谢谢"></a>谢谢</h1><p><img src="https://user-gold-cdn.xitu.io/2018/6/11/163edff576ffc3a8?w=656&amp;h=972&amp;f=png&amp;s=1036337" alt=""></p>
+
+  </article>
+  <div class="random-toc-area">
+  <button class="btn-hide-toc btn-hide-toc-show" style="display: none" onclick="TOCToggle()">Show TOC</button>
+  <button class="btn-hide-toc btn-hide-toc-hide" onclick="TOCToggle()">Hide TOC</button>
+  <div class="random-toc">
+    <h2>Table of Content</h2>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#缓存数据"><span class="toc-text">缓存数据</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#数据常用于哪里？"><span class="toc-text">数据常用于哪里？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#如何使用异步接口进行数据缓存？"><span class="toc-text">如何使用异步接口进行数据缓存？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#当然还有setStorageSync同步接口的问题"><span class="toc-text">当然还有setStorageSync同步接口的问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#这里是项目地址"><span class="toc-text">这里是项目地址</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#如果你觉得对你有所帮助"><span class="toc-text">如果你觉得对你有所帮助</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#谢谢"><span class="toc-text">谢谢</span></a>
+  </div>
+</div>
+
+  
+<nav id="pagination">
+  
+    <a href="/zengkaii.github.io/2018/06/20/function/" class="prev">&larr; Prev post javascript函数</a>
+  
+
+  
+
+  
+    <a href="/zengkaii.github.io/2018/05/31/lagou/" class="next">Next post 拉勾微信小程序 &rarr;</a>
+  
+</nav>
+
+  <!-- JiaThis Button BEGIN -->
+
+<!-- JiaThis Button END -->
+
+
+      
+      
+    </div>
+  </div>
+
+  <div id="bottom-outer">
+    <div id="bottom-inner">
+      Site by zengkai using
+      <a href="http://hexo.io">Hexo</a> & <a href="https://github.com/stiekel/hexo-theme-random">Random</a>
+      <br>
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<div id="user-card">
+  <div class="center-field">
+    <img class="avatar" src="https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=3469716026,2816395410&fm=27&gp=0.jpg">
+    <p id="description">前端菜鸟</p>
+    <ul class="social-icon">
+  
+  
+    <li>
+      <a href="https://github.com/zengkaii">
+        
+          <i class="icon iconfont github">&#xe606;</i>
+        
+      </a>
+    </li>
+  
+    <li>
+      <a href="https://twitter.com/zengkai524?lang=zh-cn">
+        
+          <i class="icon iconfont twitter">&#xe600;</i>
+        
+      </a>
+    </li>
+  
+</ul>
+  </div>
+</div>
+
+
+<div id="btn-view">Hide</div>
+
+<script>
+// is trigger analytics / tongji script
+var isIgnoreHost = false;
+
+if(window && window.location && window.location.host) {
+  isIgnoreHost = ["localhost","127.0.0.1"].some(function(address){
+    return 0 === window.location.host.indexOf(address);
+  });
+}
+
+var isTriggerAnalytics = !( true && isIgnoreHost );
+
+</script>
+
+
+
+
+  
+  
+    <script src="/zengkaii.github.io/js/jquery-2.2.3.min.js"></script>
+  
+    <script src="/zengkaii.github.io/js/vegas.min.js"></script>
+  
+    <script src="/zengkaii.github.io/js/random.js"></script>
+  
+    <script src="/zengkaii.github.io/js/highlight.pack.js"></script>
+  
+    <script src="/zengkaii.github.io/js/jquery.mousewheel.pack.js"></script>
+  
+    <script src="/zengkaii.github.io/js/jquery.fancybox.pack.js"></script>
+  
+    <script src="/zengkaii.github.io/js/jquery.fancybox-thumbs.js"></script>
+  
+    <script src="/zengkaii.github.io/js/plyr.js"></script>
+  
+
+<script>
+
+  // fancybox
+  var backgroundImages = [];
+  
+  $('#post').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox') || $(this).parent().hasClass('fancybox-thumb')) return;
+      var alt = this.alt || this.title;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'post' + i);
+    });
+  });
+  $(".fancybox").fancybox();
+
+var vegasConfig = {"preload­Image":true,"transition":["slideLeft2","slideRight2","flash2"],"timer":true,"delay":5000,"shuffle":true,"count":28};
+var unsplashConfig = {"gravity":"north"};
+// is show background images
+var turnoffBackgroundImage = false;
+
+
+
+  turnoffBackgroundImage = true;
+
+
+var backgroundColor = "34495E";
+
+$(".fancybox-thumb").fancybox({
+  prevEffect: 'none',
+  nextEffect: 'none',
+  helpers: {
+    title: {
+      type: 'outside'
+    },
+    thumbs: {
+      width: 50,
+      height: 50
+    }
+  }
+});
+
+// show video with plyr
+$(".video-container iframe").each(function(i){
+  var url = $(this).attr('src');
+  var id = url.split('/').pop();
+  var plyrContainer = document.createElement('div');
+  plyrContainer.className = 'plyr';
+  var plyrElement = document.createElement('div');
+  plyrElement.dataset.videoId = id;
+  switch(true) {
+    case url.search('youtube.com') >= 0:
+      plyrElement.dataset.type = 'youtube';
+      break;
+    case url.search('vimeo.com') >= 0:
+      plyrElement.dataset.type = 'vimeo';
+      break;
+    default:
+      return;
+  };
+  plyrContainer.appendChild(plyrElement);
+  $(this).parent().html(plyrContainer);
+});
+plyr.setup('.plyr', {iconUrl: '/zengkaii.github.io/css/sprite.svg'});
+</script>
+</body>
+</html>
+
